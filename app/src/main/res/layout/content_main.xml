@@ -1,0 +1,243 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.example.shick.stepcounter.MainActivity">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ffffff">
+        <com.baidu.mapapi.map.TextureMapView
+            android:id="@+id/bmapView"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:clickable="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentTop="true" />
+
+        <RelativeLayout
+            android:layout_width="400dp"
+            android:layout_height="120dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="10dp"
+            android:id="@+id/linearLayout"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:background="#ffffff">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/chronometer"
+                android:text="00:00:00"
+                android:textSize="40sp"
+                android:layout_alignParentTop="true"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="5dp"
+                android:textColor="@color/accent_material_light" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="时长"
+                android:layout_toRightOf="@+id/chronometer"
+                android:paddingTop="30dp"
+                android:textColor="@color/accent_material_light"
+                android:id="@+id/textView" />
+            <ImageView
+                android:id="@+id/line"
+                android:layout_width="match_parent"
+                android:layout_height="0.2dp"
+                android:layout_below="@+id/chronometer"
+                android:background="@color/primary_dark_material_light" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:orientation="horizontal"
+                android:layout_below="@+id/line"
+                android:layout_marginTop="5dp">
+
+                <LinearLayout
+                    android:layout_width="110dp"
+                    android:layout_height="50dp"
+                    android:orientation="vertical"
+                    android:layout_marginRight="0dp"
+                    android:layout_marginLeft="15dp">
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="日期"
+                        android:paddingLeft="30dp"
+                        android:layout_marginTop="5dp"
+                        android:textColor="@android:color/holo_purple" />
+                    <TextView
+                        android:id="@+id/today"
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="2016-5-23"
+                        android:paddingLeft="12dp"
+                        android:textColor="@android:color/holo_purple" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="110dp"
+                    android:layout_height="50dp"
+                    android:orientation="vertical"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginLeft="15dp">
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="步数"
+                        android:paddingLeft="20dp"
+                        android:layout_marginTop="5dp"
+                        android:textColor="@android:color/holo_purple" />
+                    <TextView
+                        android:id="@+id/step"
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="30"
+                        android:paddingLeft="20dp"
+                        android:textColor="@android:color/holo_purple" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="110dp"
+                    android:layout_height="50dp"
+                    android:orientation="vertical"
+                    android:layout_marginLeft="0dp"
+                    android:layout_marginRight="50dp">
+                    <TextView
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="总次数"
+                        android:paddingLeft="30dp"
+                        android:layout_marginTop="5dp"
+                        android:textColor="@android:color/holo_purple" />
+                    <TextView
+                        android:id="@+id/ts"
+                        android:layout_width="100dp"
+                        android:layout_height="20dp"
+                        android:text="69"
+                        android:paddingLeft="45dp"
+                        android:textColor="@android:color/holo_purple" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <Button
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:text="@string/stop"
+            android:id="@+id/stop"
+            android:textColor="@color/white"
+            android:background="@drawable/buttonred"
+
+            android:layout_marginBottom="65dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/mapToggleButton"
+            android:layout_toEndOf="@+id/mapToggleButton" />
+
+        <ToggleButton
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:background="@drawable/toggle_button_shape"
+            android:id="@+id/mapToggleButton"
+            android:checked="false"
+            android:textOff=""
+            android:textOn=""
+            android:layout_below="@+id/linearLayout"
+            android:layout_alignLeft="@+id/linearLayout"
+            android:layout_alignStart="@+id/linearLayout" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="vertical"
+            android:background="@color/back"
+            android:layout_alignParentBottom="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="20dp"
+                android:layout_marginLeft="20dp">
+                <ImageView
+                    android:id="@+id/database_"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/database"
+                    android:layout_marginTop="3dp"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginLeft="30dp"/>
+                <ImageView
+                    android:id="@+id/search_"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/search"
+                    android:layout_marginTop="3dp"
+                    android:layout_centerInParent="true"/>
+                <ImageView
+                    android:id="@+id/music_"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/music"
+                    android:layout_marginTop="3dp"
+                    android:layout_alignParentRight="true"
+                    android:layout_marginRight="30dp"/>
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:id="@+id/database"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/back"
+                    android:layout_marginTop="3dp"
+                    android:text="历史记录"
+                    android:layout_alignParentLeft="true"
+                    android:textSize="5pt"
+                    android:textColor="@color/black"
+                    android:layout_marginLeft="38dp"/>
+                <TextView
+                    android:id="@+id/search"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/back"
+                    android:layout_marginTop="3dp"
+                    android:text="选择歌曲"
+                    android:textSize="5pt"
+                    android:textColor="@color/black"
+                    android:layout_centerHorizontal="true"/>
+                <TextView
+                    android:id="@+id/music"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/back"
+                    android:layout_marginTop="3dp"
+                    android:text="播放音乐"
+                    android:layout_alignParentRight="true"
+                    android:textSize="5pt"
+                    android:textColor="@color/black"
+                    android:layout_marginRight="38dp"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+        <Button
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:text="@string/start"
+            android:id="@+id/startAndPause"
+            android:textColor="@color/white"
+            android:layout_marginEnd="31dp"
+            android:background="@drawable/buttongreen"
+            android:layout_alignBaseline="@+id/stop"
+            android:layout_alignBottom="@+id/stop"
+            android:layout_alignRight="@+id/linearLayout"
+            android:layout_alignEnd="@+id/linearLayout"
+            android:layout_marginRight="31dp" />
+
+    </RelativeLayout>
+
+</FrameLayout>
