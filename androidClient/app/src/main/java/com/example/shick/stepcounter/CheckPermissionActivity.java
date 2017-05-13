@@ -17,6 +17,7 @@ import com.tbruyelle.rxpermissions.RxPermissions;
 
 import rx.functions.Action1;
 
+//  Use RxPermission to request Permission
 public class CheckPermissionActivity extends AppCompatActivity {
 
     @Override
@@ -29,11 +30,14 @@ public class CheckPermissionActivity extends AppCompatActivity {
                     @Override
                     public void call(Boolean granted) {
                         if (granted) {
-                            Toast.makeText(CheckPermissionActivity.this, "Granted", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CheckPermissionActivity.this,
+                                    "ACCESS_FINE_LOCATION Permission Granted", Toast.LENGTH_SHORT).show();
+//                          enter BeginActivity
                             startActivity(new Intent(CheckPermissionActivity.this, BeginActivity.class));
                             finish();
                         } else {
-                            Toast.makeText(CheckPermissionActivity.this, "App will finish in 3 secends...", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(CheckPermissionActivity.this,
+                                    "Permission Not Guaranteed, App close in 3 secends...", Toast.LENGTH_SHORT).show();
                             Handler handler = new Handler();
                             handler.postDelayed(new Runnable() {
                                 @Override
