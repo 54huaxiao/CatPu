@@ -331,17 +331,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        SDKInitializer.initialize(getApplicationContext());
-        setContentView(R.layout.activity_main);
-
-        initViews();
-        initDB();
-        initManagersAndSensors();
-        initCurrentLocation();
-
+    private void setListeners() {
         mMapView.getMap().setOnMapTouchListener(new BaiduMap.OnMapTouchListener() {
             @Override
             public void onTouch(MotionEvent motionEvent) {
@@ -363,19 +353,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         });
-
-        // init time
-        currentTime = 0;
-        stepCount = 0;
-        actualStep = 0;
-        stepStamp = 0;
-        setTime(currentTime);
-        setStep(stepCount);
-
-        // init chronometerState
-        chronometerState = STATE_STOP;
-
-
         // 调用github中安卓开源库进行文件管理器的打开
         mImageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -396,6 +373,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startActivity(intent);
             }
         });
+
 
         // 音乐播放，暂停按钮
         mImageViewMusic.setOnClickListener(new View.OnClickListener() {
@@ -512,6 +490,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             }
         });
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        SDKInitializer.initialize(getApplicationContext());
+        setContentView(R.layout.activity_main);
+
+        initViews();
+        initDB();
+        initManagersAndSensors();
+        initCurrentLocation();
+        setListeners();
+
+        // init time
+        currentTime = 0;
+        stepCount = 0;
+        actualStep = 0;
+        stepStamp = 0;
+        setTime(currentTime);
+        setStep(stepCount);
+
+        // init chronometerState
+        chronometerState = STATE_STOP;
+
         initMediaPlayer();
     }
 
@@ -690,7 +693,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (mStepCounter != null) {
             mSensorManager.registerListener(this, mStepCounter, SensorManager.SENSOR_DELAY_UI);
         } else {
-            Toast.makeText(this, "Count sensor not available!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "StepCountSensor not available!", Toast.LENGTH_SHORT).show();
         }
     }
     @Override
