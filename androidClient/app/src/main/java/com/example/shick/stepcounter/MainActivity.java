@@ -202,8 +202,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
-    Handler handler1 = new Handler();
-    Runnable runnable1 = new Runnable() {
+    Handler handlerUpdateDB = new Handler();
+    Runnable runnableUpdateDB = new Runnable() {
         @Override
         public void run() {
             final Button B = (Button) findViewById(R.id.startAndPause);
@@ -229,7 +229,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (mToggleButton.isChecked()) {
                 centerCurrentLocationOnScreen();
             }
-            handler1.postDelayed(this, 250);
+            handlerUpdateDB.postDelayed(this, 250);
         }
     };
 
@@ -273,22 +273,43 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     };
 
+    private void initViews() {
+        mMapView = (TextureMapView) findViewById(R.id.bmapView);
+        mToggleButton = (ToggleButton) findViewById(R.id.mapToggleButton);
+        mTextViewTimer = (TextView) findViewById(R.id.chronometer);
+        mTextViewStep = (TextView) findViewById(R.id.step);
+        mButtonStartAndPause = (Button) findViewById(R.id.startAndPause);
+        mButtonStop = (Button) findViewById(R.id.stop);
+        mImageViewMusic = (ImageView) findViewById(R.id.music_);
+        mImageViewDB = (ImageView) findViewById(R.id.database_);
+        mImageViewSearch = (ImageView) findViewById(R.id.search_);
+        mTextViewMusic = (TextView) findViewById(R.id.music);
+
+        Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.pointer), 100, 100, true);
+        BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
+        mMapView.getMap().setMyLocationEnabled(true);
+        MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, true, bitmapDescriptor);
+        mMapView.getMap().setMyLocationConfigeration(config);
+        // cancel the zoom button
+        mMapView.showZoomControls(false);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
 
+        initViews();
+
         database = new Run_DB(this, "RunDB", null, 1);
         map_database = new Map_DB(this, "MapDB", null, 1);
         updateTop();
-        handler1.postDelayed(runnable1, 250);
+        handlerUpdateDB.postDelayed(runnableUpdateDB, 250);
 
         preferences = getSharedPreferences("demo", Context.MODE_PRIVATE);
         order = preferences.getInt("order", 0);
 
-        mMapView = (TextureMapView) findViewById(R.id.bmapView);
-        mToggleButton = (ToggleButton) findViewById(R.id.mapToggleButton);
         // init sensor manager
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -313,11 +334,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             providerName = LocationManager.GPS_PROVIDER;
         }
 
-        Bitmap bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeResource(getResources(), R.mipmap.pointer), 100, 100, true);
-        BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
-        mMapView.getMap().setMyLocationEnabled(true);
-        MyLocationConfiguration config = new MyLocationConfiguration(MyLocationConfiguration.LocationMode.NORMAL, true, bitmapDescriptor);
-        mMapView.getMap().setMyLocationConfigeration(config);
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             currentLocation = mLocationManager.getLastKnownLocation(providerName);
@@ -361,13 +377,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-        // cancel the zoom button
-        mMapView.showZoomControls(false);
-
-        mTextViewTimer = (TextView) findViewById(R.id.chronometer);
-        mTextViewStep = (TextView) findViewById(R.id.step);
-        mButtonStartAndPause = (Button) findViewById(R.id.startAndPause);
-        mButtonStop = (Button) findViewById(R.id.stop);
         // init time
         currentTime = 0;
         stepCount = 0;
@@ -379,11 +388,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // init chronometerState
         chronometerState = STATE_STOP;
 
-        // 音乐播放，数据库查询，本机文件管理器控件接口
-        mImageViewMusic = (ImageView) findViewById(R.id.music_);
-        mImageViewDB = (ImageView) findViewById(R.id.database_);
-        mImageViewSearch = (ImageView) findViewById(R.id.search_);
-        mTextViewMusic = (TextView) findViewById(R.id.music);
 
         // 调用github中安卓开源库进行文件管理器的打开
         mImageViewSearch.setOnClickListener(new View.OnClickListener() {
