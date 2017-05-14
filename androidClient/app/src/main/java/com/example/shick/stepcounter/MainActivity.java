@@ -78,92 +78,101 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Pattern;
 
+import static com.example.shick.stepcounter.TimeRecorder.STATE_START;
+import static com.example.shick.stepcounter.TimeRecorder.STATE_PAUSE;
+import static com.example.shick.stepcounter.TimeRecorder.STATE_STOP;
+
+
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
-    //map
-    private TextureMapView mMapView;
-    private ToggleButton mToggleButton;
+//    Views
+    private TextureMapView mMapView = null;
+    private ToggleButton mToggleButton = null;
+    private TextView mTextViewTimer = null;
+    private TextView mTextViewToday = null;
+    private TextView mTextViewStep = null;
+    private Button mButtonStartAndPause = null;
+    private Button mButtonStop = null;
+    private ImageView mImageViewMusic = null;
+    private ImageView mImageViewSearch = null;
+    private ImageView mImageViewDB = null;
+    private TextView mTextViewMusic = null;
+
     // sensor manager and sensors
     private SensorManager mSensorManager = null;
     private Sensor mMagneticSensor = null;
     private Sensor mAccelerometerSensor = null;
-    // location manager
-    private LocationManager mLocationManager;
+    private Sensor mStepCounter = null;
+    // location manager and location
+    private LocationManager mLocationManager = null;
     private Location currentLocation = null;
-    private String providerName = null;
 
+    //    providerName
+    private String providerName = null;
     private CoordinateConverter mConverter = null;
+
+
+    // music player
+    private MediaPlayer mMediaPlayer = new MediaPlayer();
+    private MusicService mMusicService;
+    private ArrayList<String> musicList = new ArrayList<>();
+
+
     private float rotateDegree = 0;
 
+    //    store date format
+    SimpleDateFormat sDateFormat;
+    String date;
+
+
+    //    store?
     List<LatLng> polylines = new ArrayList<LatLng>();
     private int order;
     private SharedPreferences preferences;
-    private SharedPreferences.Editor editor;
 
+    private SharedPreferences.Editor editor;
+    //    store cordinate changes
     private Overlay startOverlay = null;
     private Overlay endOverlay = null;
-    private ArrayList<Overlay> pathOverlay = new ArrayList<>();
 
+    private ArrayList<Overlay> pathOverlay = new ArrayList<>();
     //DB
     private Run_DB database;
     private Map_DB map_database;
+
     private List<Run> runlist = new ArrayList<Run>();
-    SimpleDateFormat sDateFormat;
-    String date;
-    // UI Views
-    private TextView timer, todaydate;
-    private TextView textViewStep;
-    private Button buttonStartAndPause;
-    private Button buttonStop;
 
     // private variables to store time and step count
     private long currentTime;
     private long stepCount;
     private long actualStep;
     private long stepStamp;
+    private StepRecorder stepRecorder = null;
 
     // to store the state of the timer
     private int chronometerState;
+    private TimeRecorder timeRecorder = null;
+
 
     // thread
     private Thread clockThread;
-
-    // sensor manager and sensor
-    private SensorManager sensorManager;
-    private Sensor stepCounter;
-
-    // music player
-    private MediaPlayer mediaPlayer = new MediaPlayer();
-    private MusicService ms;
-    private ArrayList<String> musicList = new ArrayList<>();
-    private int musicNum = 0;
-
-    private ImageView music_;
-    private ImageView search_;
-    private ImageView DB_;
-    private TextView music;
-
-
-    private static final int STATE_START = 0;
-    private static final int STATE_PAUSE = 1;
-    private static final int STATE_STOP = 2;
 
 
     final Handler handler_ = new Handler();
     final Runnable updateThread = new Runnable() {
         @Override
         public void run() {
-            if (mediaPlayer != null) {
+            if (mMediaPlayer != null) {
                 handler_.postDelayed(updateThread, 1000);
             }
         }
     };
 
     public void updateTop() {
-        todaydate = (TextView)findViewById(R.id.today);
+        mTextViewToday = (TextView)findViewById(R.id.today);
         SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String today = DateFormat.format(new java.util.Date());
-        todaydate.setText(today);
+        mTextViewToday.setText(today);
         int times = 0;
         SQLiteDatabase db = database.getReadableDatabase();
         Cursor cursor = db.rawQuery("select * from RunTable", null);
@@ -178,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ServiceConnection sc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            ms = ((MusicService.MyBinder)service).getService();
+            mMusicService = ((MusicService.MyBinder)service).getService();
         }
 
         @Override
@@ -280,10 +289,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         mMapView = (TextureMapView) findViewById(R.id.bmapView);
         mToggleButton = (ToggleButton) findViewById(R.id.mapToggleButton);
+        // init sensor manager
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
         mAccelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         mLocationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         mConverter = new CoordinateConverter();
         mConverter.from(CoordinateConverter.CoordType.GPS);
 
@@ -353,10 +364,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         // cancel the zoom button
         mMapView.showZoomControls(false);
 
-        timer = (TextView) findViewById(R.id.chronometer);
-        textViewStep = (TextView) findViewById(R.id.step);
-        buttonStartAndPause = (Button) findViewById(R.id.startAndPause);
-        buttonStop = (Button) findViewById(R.id.stop);
+        mTextViewTimer = (TextView) findViewById(R.id.chronometer);
+        mTextViewStep = (TextView) findViewById(R.id.step);
+        mButtonStartAndPause = (Button) findViewById(R.id.startAndPause);
+        mButtonStop = (Button) findViewById(R.id.stop);
         // init time
         currentTime = 0;
         stepCount = 0;
@@ -367,18 +378,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         // init chronometerState
         chronometerState = STATE_STOP;
-        // init sensor manager
-        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        stepCounter = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
 
         // 音乐播放，数据库查询，本机文件管理器控件接口
-        music_ = (ImageView) findViewById(R.id.music_);
-        DB_ = (ImageView) findViewById(R.id.database_);
-        search_ = (ImageView) findViewById(R.id.search_);
-        music = (TextView) findViewById(R.id.music);
+        mImageViewMusic = (ImageView) findViewById(R.id.music_);
+        mImageViewDB = (ImageView) findViewById(R.id.database_);
+        mImageViewSearch = (ImageView) findViewById(R.id.search_);
+        mTextViewMusic = (TextView) findViewById(R.id.music);
 
         // 调用github中安卓开源库进行文件管理器的打开
-        search_.setOnClickListener(new View.OnClickListener() {
+        mImageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 new MaterialFilePicker()
@@ -390,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         //跳转界面，从主界面跳转到历史记录界面
-        DB_.setOnClickListener(new View.OnClickListener() {
+        mImageViewDB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DB_Activity.class);
@@ -399,32 +407,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         });
 
         // 音乐播放，暂停按钮
-        music_.setOnClickListener(new View.OnClickListener() {
+        mImageViewMusic.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!mediaPlayer.isPlaying()) {
-                    mediaPlayer.start();
-                    music.setText("暂停音乐");
+                if (!mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.start();
+                    mTextViewMusic.setText("暂停音乐");
                     handler_.post(updateThread);
                 } else {
-                    mediaPlayer.pause();
-                    music.setText("播放音乐");
+                    mMediaPlayer.pause();
+                    mTextViewMusic.setText("播放音乐");
                     handler_.removeCallbacks(updateThread);
                 }
             }
         });
 
         //监听音频播放完的代码，实现音频的自动循环播放
-        mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer arg0) {
                 try {
-                    mediaPlayer.reset();
+                    mMediaPlayer.reset();
                     int temp = (int) (Math.random() * 7);
                     AssetFileDescriptor media = getAssets().openFd(musicList.get(temp%7));
-                    mediaPlayer.setDataSource(media.getFileDescriptor(), media.getStartOffset(), media.getLength());
-                    mediaPlayer.prepare();
-                    mediaPlayer.start();
+                    mMediaPlayer.setDataSource(media.getFileDescriptor(), media.getStartOffset(), media.getLength());
+                    mMediaPlayer.prepare();
+                    mMediaPlayer.start();
                     handler_.post(updateThread);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -432,7 +440,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-        buttonStartAndPause.setOnClickListener(new View.OnClickListener() {
+        mButtonStartAndPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 updateTop();
@@ -457,13 +465,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         //start time
                     }
                     chronometerState = STATE_START;
-                    buttonStartAndPause.setText("暂停");
+                    mButtonStartAndPause.setText("暂停");
                 } else if (chronometerState == STATE_START) {
                     if (clockThread == null) {
                         clockThread = new Thread(runnable);
                     }
                     chronometerState = STATE_PAUSE;
-                    buttonStartAndPause.setText("开始");
+                    mButtonStartAndPause.setText("开始");
                     LatLng desLatLng1 = new LatLng(0, 0);
                     map_database.insertdb(order, desLatLng1.latitude, desLatLng1.longitude);
                 } else if (chronometerState == STATE_PAUSE) {
@@ -472,12 +480,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         clockThread = new Thread(runnable);
                     }
                     chronometerState = STATE_START;
-                    buttonStartAndPause.setText("暂停");
+                    mButtonStartAndPause.setText("暂停");
                 }
             }
         });
 
-        buttonStop.setOnClickListener(new View.OnClickListener() {
+        mButtonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (chronometerState == STATE_START || chronometerState == STATE_PAUSE) {
@@ -490,7 +498,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     if (clockThread != null) {
                         clockThread = null;
                     }
-                    buttonStartAndPause.setText("开始");
+                    mButtonStartAndPause.setText("开始");
 
                     order++;
                     preferences=getSharedPreferences("demo", Context.MODE_PRIVATE);
@@ -499,13 +507,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     editor.commit();
                     // delete the thread
                     if (!database.selectDB(date)) {
-                        database.insertDB(date,timer.getText().toString(), String.valueOf(stepCount), order-1+"");
+                        database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepCount), order-1+"");
                         updateTop();
                     }
                     // press the stop button, save the data in the database and start a new Activity
                     Intent intent = new Intent();
                     intent.setClass(MainActivity.this, MessageActivity.class);
-                    intent.putExtra("time", timer.getText().toString());
+                    intent.putExtra("time", mTextViewTimer.getText().toString());
                     intent.putExtra("step", String.valueOf(stepCount));
                     intent.putExtra("orderr", order-1);
                     startActivity(intent);
@@ -523,11 +531,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         String h = hour < 10 ? "0" + String.valueOf(hour) : String.valueOf(hour);
         String m = minute < 10 ? "0" + String.valueOf(minute) : String.valueOf(minute);
         String s = second < 10 ? "0" + String.valueOf(second) : String.valueOf(second);
-        timer.setText(h + ":" + m + ":" + s);
+        mTextViewTimer.setText(h + ":" + m + ":" + s);
     }
 
     private void setStep(long step) {
-        textViewStep.setText(String.valueOf(step));
+        mTextViewStep.setText(String.valueOf(step));
     }
 
     @Override
@@ -610,15 +618,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
                 Toast.makeText(this, filePath, Toast.LENGTH_SHORT).show();
                 // Do anything with file
-                if (mediaPlayer.isPlaying()) {
-                    music.setText("播放音乐");
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(filePath);
-                    mediaPlayer.prepare();
+                if (mMediaPlayer.isPlaying()) {
+                    mTextViewMusic.setText("播放音乐");
+                    mMediaPlayer.reset();
+                    mMediaPlayer.setDataSource(filePath);
+                    mMediaPlayer.prepare();
                 } else {
-                    mediaPlayer.reset();
-                    mediaPlayer.setDataSource(filePath);
-                    mediaPlayer.prepare();
+                    mMediaPlayer.reset();
+                    mMediaPlayer.setDataSource(filePath);
+                    mMediaPlayer.prepare();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -634,8 +642,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
             int temp = (int) (Math.random() * 7);
             AssetFileDescriptor media = getAssets().openFd(musicList.get(temp%7));
-            mediaPlayer.setDataSource(media.getFileDescriptor(), media.getStartOffset(), media.getLength());
-            mediaPlayer.prepare();
+            mMediaPlayer.setDataSource(media.getFileDescriptor(), media.getStartOffset(), media.getLength());
+            mMediaPlayer.prepare();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -688,8 +696,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             mLocationManager.requestLocationUpdates(providerName, 0, 0, mLocationListener);
         }
         super.onResume();
-        if (stepCounter != null) {
-            sensorManager.registerListener(this, stepCounter, SensorManager.SENSOR_DELAY_UI);
+        if (mStepCounter != null) {
+            mSensorManager.registerListener(this, mStepCounter, SensorManager.SENSOR_DELAY_UI);
         } else {
             Toast.makeText(this, "Count sensor not available!", Toast.LENGTH_SHORT).show();
         }
