@@ -107,8 +107,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private LocationManager mLocationManager = null;
     private Location currentLocation = null;
 
-    //    providerName
-    private String providerName = null;
     private CoordinateConverter mConverter = null;
 
 
@@ -294,14 +292,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mMapView.showZoomControls(false);
     }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        SDKInitializer.initialize(getApplicationContext());
-        setContentView(R.layout.activity_main);
-
-        initViews();
-
+    private void initDB() {
         database = new Run_DB(this, "RunDB", null, 1);
         map_database = new Map_DB(this, "MapDB", null, 1);
         updateTop();
@@ -309,7 +300,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         preferences = getSharedPreferences("demo", Context.MODE_PRIVATE);
         order = preferences.getInt("order", 0);
+    }
 
+    private void initManagersAndSensors() {
         // init sensor manager
         mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mMagneticSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
@@ -318,42 +311,36 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mStepCounter = mSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         mConverter = new CoordinateConverter();
         mConverter.from(CoordinateConverter.CoordType.GPS);
+    }
 
-        // 确保Provider可以使用
-        if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                || mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            Toast.makeText(this, "Location Provider Enabled.", Toast.LENGTH_SHORT).show();
-        } else {
-            Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
-            startActivityForResult(intent, 0);
-        }
-
-        providerName = getProviderName();
-        //如果没有则设置为GPS
-        if (providerName == null) {
-            providerName = LocationManager.GPS_PROVIDER;
-        }
-
-
+    private void initCurrentLocation() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            currentLocation = mLocationManager.getLastKnownLocation(providerName);
+            // 确保Provider可以使用
+            if (mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    || mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                Toast.makeText(this, "Location Provider Enabled.", Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(Settings.ACTION_SECURITY_SETTINGS);
+                startActivityForResult(intent, 0);
+            }
+            Location gpsLocation = new Location(LocationManager.GPS_PROVIDER);
+            Location networkLocation = new Location(LocationManager.GPS_PROVIDER);
+            currentLocation = isBetterLocation(gpsLocation, networkLocation) ? gpsLocation : networkLocation;
+            updateLocationOnMap();
+            centerCurrentLocationOnScreen();
         }
-        if (currentLocation == null && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            providerName = LocationManager.NETWORK_PROVIDER;
-            currentLocation = mLocationManager.getLastKnownLocation(providerName);
-        }
+    }
 
-        Location location=new Location(LocationManager.GPS_PROVIDER);
-        if (isBetterLocation(location, currentLocation)) {
-            updateLocation(location);
-            providerName=location.getProvider();
-            currentLocation = location;
-        } else {
-            updateLocation(currentLocation);
-            providerName=currentLocation.getProvider();
-        }
-        updateLocation(currentLocation);
-        centerCurrentLocationOnScreen();
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        SDKInitializer.initialize(getApplicationContext());
+        setContentView(R.layout.activity_main);
+
+        initViews();
+        initDB();
+        initManagersAndSensors();
+        initCurrentLocation();
 
         mMapView.getMap().setOnMapTouchListener(new BaiduMap.OnMapTouchListener() {
             @Override
@@ -697,7 +684,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.SENSOR_DELAY_GAME);
         // register location update listener
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mLocationManager.requestLocationUpdates(providerName, 0, 0, mLocationListener);
+            mLocationManager.requestLocationUpdates(getProviderName(), 0, 0, mLocationListener);
         }
         super.onResume();
         if (mStepCounter != null) {
@@ -748,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 SensorManager.getRotationMatrix(R, null, accValues, magValues);
                 SensorManager.getOrientation(R, values);
                 rotateDegree = (float) Math.toDegrees(values[0]);
-                updateLocation(currentLocation);
+                updateLocationOnMap();
             }
         }
         @Override
@@ -757,25 +744,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private LocationListener mLocationListener = new LocationListener() {
         public void onLocationChanged(Location location) {
-            updateLocation(location);
+            currentLocation = location;
+            updateLocationOnMap();
         }
         public void onStatusChanged(String provider, int status, Bundle extras) {}
         public void onProviderEnabled(String provider) {}
         public void onProviderDisabled(String provider) {
-            updateLocation(null);
+            currentLocation = null;
+            updateLocationOnMap();
         }
     };
 
-    public void updateLocation(Location location) {
-        if (location != null) {
-            currentLocation = location;
-            MyLocationData.Builder data = new MyLocationData.Builder();
-            LatLng desLatLng = convertLocationToLatLng(currentLocation);
-            data.latitude(desLatLng.latitude);
-            data.longitude(desLatLng.longitude);
-            data.direction(rotateDegree);
-            mMapView.getMap().setMyLocationData(data.build());
-        }
+    public void updateLocationOnMap() {
+        MyLocationData.Builder data = new MyLocationData.Builder();
+        LatLng desLatLng = convertLocationToLatLng(currentLocation);
+        data.latitude(desLatLng.latitude);
+        data.longitude(desLatLng.longitude);
+        data.direction(rotateDegree);
+        mMapView.getMap().setMyLocationData(data.build());
     }
 
 
@@ -793,7 +779,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected boolean isBetterLocation(Location location,
                                        Location currentBestLocation) {
-        if (currentBestLocation == null) {
+        if (currentBestLocation == null && location != null) {
             return true;
         }
 
@@ -801,7 +787,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         boolean isSignificantlyNewer = timeDelta > TWO_MINUTES;
         boolean isSignificantlyOlder = timeDelta < -TWO_MINUTES;
         boolean isNewer = timeDelta > 0;
-
 
         if (isSignificantlyNewer) {
             return true;
