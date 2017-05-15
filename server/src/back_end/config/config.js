@@ -13,15 +13,15 @@
 module.exports = {
   db: {
     host: '127.0.0.1', 
-	user: 'root',
-	password: 'asdf1234',
-	database:'catpudata' // 前面建的user表位于这个数据库中
+	  user: 'root',
+	  password: 'asdf1234',
+	  database:'catpudata' // 前面建的user表位于这个数据库中
   },
   session_config: {
     name: 'catpu-session-id',
 	  secret: 'catpu, the flower of motherland',
 	  resave: true,
-      saveUninitialized: true,
+    saveUninitialized: true,
 	  cookie: {
         path: '/',
         httpOnly: true,

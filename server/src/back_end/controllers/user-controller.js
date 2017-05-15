@@ -2,7 +2,7 @@
  * @Author: yuanxin
  * @Date:   2017-05-12
  * @Last modified by:   zx
- * @Last modified time: 2017-05-14
+ * @Last modified time: 2017-05-15
  * @Email:  yangzx8@mail2.sysu.edu.cn
  */
 
@@ -39,35 +39,46 @@ exports.signup = (req, res, next) => {
 }
 
 exports.login = (req, res, next) => {
-  if (req.session.username) {
-  	res.send("you don't logout!");
-  	return;
-  }
-  let user = req.body;
-  let isLogin = false;
+  user_model.retrieveData(req.body.username, 'username')
+    .then(([username]) => {
+      if (req.session.username !== null) {
+        res.send('用户：' + req.session.username + '已登陆')
+      } else if (username == null) {
+        res.send('用户：' + username + '不存在')
+      } else {
+        req.session.username = req.body.username
+        res.send('用户：' + username + '登陆成功')
+      }
+    })
+    .catch(err => {
+      console.log(err)
+    })
+}
 
-  for (let i = 0; i < users.length; i++) {
-  	if (user.username == users[i].username && user.password == users[i].password) {}
-  	  req.session.username = user.username;
-  	  res.send('user login success');
-  	  isLogin = true;
-  	  break;
-  	}
-  if (!isLogin) res.send('user login fail');
+exports.logout = (req, res, next) => {
+  req.session.user = null
+  res.send('退出成功')
 }
 
 exports.show = (req, res, next) => {
-  user_model.retrieveData(req.body.val, 'username')
+  user_model.retrieveData(req.body.username, 'username')
     .then(data => {
-    	req.session.user = req.body.val
+    	req.session.user = req.body.username
     	console.log(req.session)
       res.send(data)
+    })
+    .catch(err => {
+      console.log(err)
     })
 }
 
 exports.info = (req, res, next) => {
   if (!req.session.user) res.send('not login')
   else {
-  	user_model.retrieveData(req.session.user, 'username').then(data => res.send(data))
+  	user_model.retrieveData(req.session.user, 'username')
+      .then(data => res.send(data))
+      .catch(err => {
+        console.log(err)
+      })
   }
 }
