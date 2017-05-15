@@ -1,0 +1,5 @@
+##此文件是将被git push忽略的文件及文件夹
+
+.DS_Store
+node_modules/
+build/
