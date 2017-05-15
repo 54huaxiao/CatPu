@@ -12,7 +12,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -27,29 +26,19 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.os.SystemClock;
-import android.os.Vibrator;
 import android.provider.Settings;
-import android.renderscript.Script;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-import android.widget.ZoomControls;
-
 import com.baidu.mapapi.SDKInitializer;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -57,26 +46,20 @@ import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.map.Polyline;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Pattern;
 
 import static com.example.shick.stepcounter.TimeRecorder.STATE_START;
 import static com.example.shick.stepcounter.TimeRecorder.STATE_PAUSE;
@@ -109,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private CoordinateConverter mConverter = null;
 
+    private float rotateDegree = 0;
 
     // music player
     private MediaPlayer mMediaPlayer = new MediaPlayer();
@@ -116,7 +100,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ArrayList<String> musicList = new ArrayList<>();
 
 
-    private float rotateDegree = 0;
 
     //    store date format
     SimpleDateFormat sDateFormat;
@@ -138,19 +121,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Run_DB database;
     private Map_DB map_database;
 
-    private List<Run> runlist = new ArrayList<Run>();
-
-    // private variables to store time and step count
-    private long currentTime;
-    private long stepCount;
-    private long actualStep;
-    private long stepStamp;
     private StepRecorder stepRecorder = null;
 
-    // to store the state of the timer
-    private int chronometerState;
     private TimeRecorder timeRecorder = null;
-
 
     // thread
     private Thread clockThread;
@@ -235,16 +208,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         public void handleMessage(Message message) {
             switch (message.what) {
                 case STATE_START:
-                    currentTime++;
+                    timeRecorder.setTime(timeRecorder.getTime() + 1);
                     break;
                 case STATE_STOP:
-                    currentTime = 0;
-                    stepCount = 0;
-                    stepStamp = 0;
+                    timeRecorder.reset();
+                    stepRecorder.reset();
                     break;
             }
-            setTime(currentTime);
-            setStep(stepCount);
+            mTextViewTimer.setText(timeRecorder.getFormattedTime());
+            mTextViewStep.setText(String.valueOf(stepRecorder.getStepCount()));
             super.handleMessage(message);
         }
     };
@@ -252,7 +224,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         @Override
         public void run() {
             while (true) {
-                if (chronometerState == STATE_START) {
+
+                if (timeRecorder.isStart()) {
                     try {
                         Thread.sleep(10);
                         Message message = new Message();
@@ -261,7 +234,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                } else if (chronometerState == STATE_STOP) {
+                } else if (timeRecorder.isStop()) {
                     Message message = new Message();
                     message.what = STATE_STOP;
                     handler.sendMessage(message);
@@ -290,6 +263,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mMapView.getMap().setMyLocationConfigeration(config);
         // cancel the zoom button
         mMapView.showZoomControls(false);
+    }
+
+    private void initUtils() {
+        stepRecorder = new StepRecorder();
+        timeRecorder = new TimeRecorder();
     }
 
     private void initDB() {
@@ -413,7 +391,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View view) {
                 updateTop();
-                if (chronometerState == STATE_STOP) {
+                if (timeRecorder.isStop()) {
                     mToggleButton.setChecked(true);
                     // init startIcon
                     LatLng limit = convertLocationToLatLng(currentLocation);
@@ -425,7 +403,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         overlay.remove();
                     }
                     pathOverlay.clear();
-                    stepStamp = actualStep;
+                    stepRecorder.updateStepStamp(STATE_STOP);
                     if (clockThread == null) {
                         sDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
                         date = sDateFormat.format(new java.util.Date());
@@ -433,22 +411,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         clockThread.start();
                         //start time
                     }
-                    chronometerState = STATE_START;
+                    timeRecorder.start();
                     mButtonStartAndPause.setText("暂停");
-                } else if (chronometerState == STATE_START) {
+                } else if (timeRecorder.isStart()) {
                     if (clockThread == null) {
                         clockThread = new Thread(runnable);
                     }
-                    chronometerState = STATE_PAUSE;
+                    timeRecorder.pause();
                     mButtonStartAndPause.setText("开始");
                     LatLng desLatLng1 = new LatLng(0, 0);
                     map_database.insertdb(order, desLatLng1.latitude, desLatLng1.longitude);
-                } else if (chronometerState == STATE_PAUSE) {
-                    stepStamp = actualStep - stepCount;
+                } else if (timeRecorder.isPause()) {
+                    stepRecorder.updateStepStamp(STATE_PAUSE);
                     if (clockThread == null) {
                         clockThread = new Thread(runnable);
                     }
-                    chronometerState = STATE_START;
+                    timeRecorder.start();
                     mButtonStartAndPause.setText("暂停");
                 }
             }
@@ -457,8 +435,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mButtonStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (chronometerState == STATE_START || chronometerState == STATE_PAUSE) {
-                    chronometerState = STATE_STOP;
+                if (!timeRecorder.isStop()) {
+                    timeRecorder.stop();
                     // set end Icon
                     LatLng limit = convertLocationToLatLng(currentLocation);
                     endOverlay = mMapView.getMap().addOverlay(new MarkerOptions().position(limit)
@@ -476,14 +454,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     editor.commit();
                     // delete the thread
                     if (!database.selectDB(date)) {
-                        database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepCount), order-1+"");
+                        database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepRecorder.getStepCount()), order-1+"");
                         updateTop();
                     }
                     // press the stop button, save the data in the database and start a new Activity
                     Intent intent = new Intent();
                     intent.setClass(MainActivity.this, MessageActivity.class);
                     intent.putExtra("time", mTextViewTimer.getText().toString());
-                    intent.putExtra("step", String.valueOf(stepCount));
+                    intent.putExtra("step", String.valueOf(stepRecorder.getStepCount()));
                     intent.putExtra("orderr", order-1);
                     startActivity(intent);
                 }
@@ -498,22 +476,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
 
+        initUtils();
         initViews();
         initDB();
         initManagersAndSensors();
         initCurrentLocation();
         setListeners();
 
-        // init time
-        currentTime = 0;
-        stepCount = 0;
-        actualStep = 0;
-        stepStamp = 0;
-        setTime(currentTime);
-        setStep(stepCount);
-
-        // init chronometerState
-        chronometerState = STATE_STOP;
+        mTextViewTimer.setText(timeRecorder.getFormattedTime());
+        mTextViewStep.setText(String.valueOf(stepRecorder.getStepCount()));
 
         initMediaPlayer();
     }
@@ -534,7 +505,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     protected void onStart() {
-        if (chronometerState == STATE_STOP) {
+        if (timeRecorder.isStop()) {
             // delete existing overlay
             mToggleButton.setChecked(false);
             if (startOverlay != null) {
@@ -561,9 +532,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        actualStep = (long) event.values[0];
-        if (chronometerState == STATE_START) {
-            stepCount = actualStep - stepStamp;
+        stepRecorder.updateActualStep((long) event.values[0]);
+        if (timeRecorder.isStart()) {
+            stepRecorder.updateStepCount();
         }
     }
 
