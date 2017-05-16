@@ -1,12 +1,4 @@
 /**
- * @Author: zx
- * @Date:   2017-05-13
- * @Email:  yangzx8@mail2.sysu.edu.cn
- * @Last modified by:   zx
- * @Last modified time: 2017-05-13
- */
-
-/**
  * 后端路径配置等
  * routes路径实现路由，controllers路径实现业务逻辑，models路径实现数据交互
  */
@@ -34,7 +26,7 @@ const sc = config.session_config
 
 // view engine setup
 app.set('views', path.join(__dirname + '/../../src/front_end', 'views'))
-app.set('view engine', 'ejs')
+app.set('view engine', 'jade')
 
 //***********************下面为中间件的配置******************************
 app.use(logger('dev'))

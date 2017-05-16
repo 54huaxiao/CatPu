@@ -1,0 +1,21 @@
+extends layout
+
+block content
+  form(action='/userApi/register' method='post')
+    h1 register
+      .form
+        input.textfield(type='text', name='name', placeholder='Username')
+      .form
+        input.textfield(type='password', name='pwd', placeholder='Password')
+      .form
+        input.textfield(type='password', name='rpwd', placeholder='Repeat your password')
+      .form
+        input.textfield(type='text', name='tel', placeholder='Telphone number')
+      .form
+        input.textfield(type='text', name='email', placeholder='E-mail address')
+      .form
+        input#reset.button(type='reset', name='reset', value='Reset')
+      .form
+        input#submit.button(type='submit', name='submit', value='register')
+
+  script(type='text/javascript', src='/javascripts/jquery-2.2.0.min.js')

@@ -1,9 +1,8 @@
 /**
  * @Author: yuanxin
  * @Date:   2017-05-12
- * @Last modified by:   zx
- * @Last modified time: 2017-05-15
- * @Email:  yangzx8@mail2.sysu.edu.cn
+ * @Last modified by:   yx
+ * @Last modified time: 2017-05-16
  */
 
 const express = require('express')
@@ -39,11 +38,22 @@ exports.signup = (req, res, next) => {
 }
 
 exports.login = (req, res, next) => {
+  if (req.session.username) {
+    res.send("you don't logout!");
+    return;
+  }
+
   user_model.retrieveData(req.body.username, 'username')
     .then(([username]) => {
-      if (req.session.username !== null) {
+      /*if (req.session.username !== null) {
         res.send('用户：' + req.session.username + '已登陆')
       } else if (username == null) {
+        res.send('用户：' + username + '不存在')
+      } else {
+        req.session.username = req.body.username
+        res.send('用户：' + username + '登陆成功')
+      }*/
+      if (username == null) {
         res.send('用户：' + username + '不存在')
       } else {
         req.session.username = req.body.username
