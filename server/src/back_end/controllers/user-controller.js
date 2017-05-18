@@ -7,6 +7,7 @@
 
 const express = require('express')
 const user_model = require('../models/user-model')
+const validator = require('../../front_end/assets/javascripts/validator');
 
 let users = [{
   username: 'admin',
@@ -15,26 +16,42 @@ let users = [{
   telephone: '1546543135'
 }]
 
-exports.signup = (req, res, next) => {
-  console.log(req.session+'++++++')
+exports.register = (req, res, next) => {
+  console.log(req.session+'++++++');
   if (req.session.username) {
-  	console.log(req.session.username);
-  	res.send("you don't logout!");
-  	return;
+    console.log(req.session.username);
+    res.send("you don't logout!");
+    return;
   }
-  let user = req.body;
-  let isSignin = false;
 
+  let user = req.body;
+
+  //判断注册时各个信息是否合法
+  let errorMessage = [];
+  for (let key in user) {
+    if (!validator.isFieldValid(key, user[key])) {
+      errorMessage.push(validator.getErrorMessage(key));
+    }
+  }
+  if (errorMessage.length >= 0) res.send(errorMessage.join('<br />'));
+  
+  //各个信息已经合法 接下来数据库判断用户名是否已经被占用
+  //如果没有则存入数据库
+  //待完成
+
+
+  //以下作废
+  /*let isSignin = false;
   for (let i = 0; i < users.length; i++) {
-  	if (user.username == users[i].username) {
-  		res.send('username has been used');
-  		signin = true;
-  		return;
-  	}
+    if (user.username == users[i].username) {
+      res.send('username has been used');
+      signin = true;
+      return;
+    }
   }
   users.push(user);
   console.log(users);
-  if (!isSignin) res.send("user signin success");
+  if (!isSignin) res.send("user signin success");*/
 }
 
 exports.login = (req, res, next) => {
@@ -73,8 +90,8 @@ exports.logout = (req, res, next) => {
 exports.show = (req, res, next) => {
   user_model.retrieveData(req.body.username, 'username')
     .then(data => {
-    	req.session.user = req.body.username
-    	console.log(req.session)
+      req.session.user = req.body.username
+      console.log(req.session)
       res.send(data)
     })
     .catch(err => {
@@ -85,7 +102,7 @@ exports.show = (req, res, next) => {
 exports.info = (req, res, next) => {
   if (!req.session.user) res.send('not login')
   else {
-  	user_model.retrieveData(req.session.user, 'username')
+    user_model.retrieveData(req.session.user, 'username')
       .then(data => res.send(data))
       .catch(err => {
         console.log(err)
