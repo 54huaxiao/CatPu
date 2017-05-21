@@ -68,7 +68,7 @@ import static com.example.shick.stepcounter.TimeRecorder.STATE_STOP;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
 
-//    Views
+    // Views
     private TextureMapView mMapView = null;
     private ToggleButton mToggleButton = null;
     private TextView mTextViewTimer = null;
@@ -101,18 +101,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
 
-    //    store date format
+    // store date format
     SimpleDateFormat sDateFormat;
     String date;
 
 
-    //    store?
+    // store?
     List<LatLng> polylines = new ArrayList<LatLng>();
     private int order;
     private SharedPreferences preferences;
 
     private SharedPreferences.Editor editor;
-    //    store cordinate changes
+    // store cordinate changes
     private Overlay startOverlay = null;
     private Overlay endOverlay = null;
 
@@ -331,6 +331,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
             }
         });
+
         // 调用github中安卓开源库进行文件管理器的打开
         mImageViewSearch.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -351,7 +352,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 startActivity(intent);
             }
         });
-
 
         // 音乐播放，暂停按钮
         mImageViewMusic.setOnClickListener(new View.OnClickListener() {
@@ -538,40 +538,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-    // Handle action bar item clicks here. The action bar will
-    // automatically handle clicks on the Home/Up button, so long
-    // as you specify a parent activity in AndroidManifest.xml.
-//        int id = item.getItemId();
-//
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//        if (id == R.id.music) {
-//            new MaterialFilePicker()
-//                    .withActivity(this)
-//                    .withRequestCode(1)
-//                    .withHiddenFiles(true) // Show hidden files and folders
-//                    .start();
-//        }
-//        if (id == R.id.DB) {
-//            Intent intent = new Intent(MainActivity.this, DB_Activity.class);
-//            startActivity(intent);
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//        return true;
-//    }
-
     // 打开文件管理器后选择音乐文件加载进入mediaPlayer
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -622,6 +588,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         MapStatusUpdate mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
         mMapView.getMap().setMapStatus(mMapStatusUpdate);
     }
+
     // 获取 Location Provider
     private String getProviderName() {
         // 构建位置查询条件
@@ -667,6 +634,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             Toast.makeText(this, "StepCountSensor not available!", Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
     protected void onPause() {
         //在activity执行onPause时执行mMapView. onPause ()，实现地图生命周期管理
@@ -686,7 +654,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             moveTaskToBack(true);
         }return super.onKeyDown(keyCode, event);
     }
-
 
     private SensorEventListener mSensorEventListener = new SensorEventListener() {
         float[] accValues = null;
@@ -743,10 +710,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mConverter.from(CoordinateConverter.CoordType.GPS);
         mConverter.coord(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()));
         return mConverter.convert();
-    }
-
-    boolean isPhoneShaking(float [] values) {
-        return (Math.abs(values[0]) > 17 || Math.abs(values[1]) > 17 || Math.abs(values[2]) > 17);
     }
 
     private static final int TWO_MINUTES = 1000 * 60 * 2;

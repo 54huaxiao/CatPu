@@ -40,14 +40,6 @@
         <activity android:name=".DB_Activity" />
         <activity android:name=".MessageActivity" />
 
-        <receiver
-            android:name=".StaticBroadcast"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.example.shick.stepcounter.MyBroadcast" />
-            </intent-filter>
-        </receiver>
         <receiver android:name=".StepCounterWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

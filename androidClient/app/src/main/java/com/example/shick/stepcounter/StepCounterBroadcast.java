@@ -11,10 +11,11 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 /**
- * Created by Vincent on 2016/12/11.
+ * Created by huaxiao on 2017/5/21.
+ * 静态广播接收
  */
 
-public class StaticBroadcast extends BroadcastReceiver {
+public class StepCounterBroadcast extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("com.example.shick.stepcounter.MyBroadcast")) {
@@ -34,3 +35,4 @@ public class StaticBroadcast extends BroadcastReceiver {
         }
     }
 }
+
