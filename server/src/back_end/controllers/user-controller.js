@@ -7,79 +7,72 @@
 
 const express = require('express')
 const user_model = require('../models/user-model')
-const validator = require('../../front_end/assets/javascripts/validator');
-
-let users = [{
-  username: 'admin',
-  password: '12345',
-  email: 'qwert@qq.com',
-  telephone: '1546543135'
-}]
 
 exports.register = (req, res, next) => {
-  console.log(req.session+'++++++');
-  if (req.session.username) {
-    console.log(req.session.username);
-    res.send("you don't logout!");
-    return;
-  }
-
-  let user = req.body;
-
-  //判断注册时各个信息是否合法
-  let errorMessage = [];
-  for (let key in user) {
-    if (!validator.isFieldValid(key, user[key])) {
-      errorMessage.push(validator.getErrorMessage(key));
-    }
-  }
-  if (errorMessage.length >= 0) res.send(errorMessage.join('<br />'));
-  
-  //各个信息已经合法 接下来数据库判断用户名是否已经被占用
-  //如果没有则存入数据库
-  //待完成
-
-
-  //以下作废
-  /*let isSignin = false;
-  for (let i = 0; i < users.length; i++) {
-    if (user.username == users[i].username) {
-      res.send('username has been used');
-      signin = true;
-      return;
-    }
-  }
-  users.push(user);
-  console.log(users);
-  if (!isSignin) res.send("user signin success");*/
+  user_model.retrieveData(req.body.username, 'username')
+    .then(([user]) => {
+      if (user != null) {
+        res.json({
+          status: 'USER_EXIST',
+          msg: '用户：' + req.body.username + '已存在',
+          content: [user.username]
+        })
+      } else if (req.body.username == '' || req.body.phone == ''
+        || req.body.email == '' || req.body.password == '') {
+        console.log(req.body.username)
+        console.log(req.body.phone)
+        console.log(req.body.email)
+        console.log(req.body.password)
+        res.json({
+          status: 'INVALID_VALUE',
+          msg: '参数不能为空',
+          content: ['']
+        })
+      } else {
+        user_model.register(req.body)
+          .then(users => {
+            res.json({
+              status: 'OK',
+              msg: '用户：' + req.body.username + '注册成功',
+              content: [req.body.username]
+            })
+          })
+          .catch(err => { console.log(err) })
+      }
+    })
+    .catch(err => { console.log(err) })
 }
 
 exports.login = (req, res, next) => {
-  if (req.session.username) {
-    res.send("you don't logout!");
-    return;
-  }
-
+  // 若已经登录
+  // if (req.session.username) {
+  //   res.send("you don't logout!");
+  //   return;
+  // }
   user_model.retrieveData(req.body.username, 'username')
-    .then(([username]) => {
-      /*if (req.session.username !== null) {
-        res.send('用户：' + req.session.username + '已登陆')
-      } else if (username == null) {
-        res.send('用户：' + username + '不存在')
+    .then(([user]) => {
+      if (user == null) {
+        res.json({
+          status: 'USER_NOT_EXIST',
+          msg: '用户：' + req.body.username + '不存在',
+          content: [user]
+        })
+      } else if (user.password != req.body.password) {
+        res.json({
+          status: 'PASSWORD_WRONG',
+          msg: '密码错误',
+          content: [user.username]
+        })
       } else {
         req.session.username = req.body.username
-        res.send('用户：' + username + '登陆成功')
-      }*/
-      if (username == null) {
-        res.send('用户：' + username + '不存在')
-      } else {
-        req.session.username = req.body.username
-        res.send('用户：' + username + '登陆成功')
+        res.json({
+          status: 'OK',
+          msg: '用户：' + req.body.username + '登陆成功',
+          content: [user.username]
+        })
       }
     })
-    .catch(err => {
-      console.log(err)
-    })
+    .catch(err => { console.log(err) })
 }
 
 exports.logout = (req, res, next) => {
@@ -91,7 +84,6 @@ exports.show = (req, res, next) => {
   user_model.retrieveData(req.body.username, 'username')
     .then(data => {
       req.session.user = req.body.username
-      console.log(req.session)
       res.send(data)
     })
     .catch(err => {

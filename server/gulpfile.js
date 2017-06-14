@@ -17,10 +17,12 @@
 var gulp = require('gulp')
 var express = require('gulp-express')
 var changed = require('gulp-changed')
+var run = require('gulp-run')
 
 
 gulp.task('full-stack', ['transmit-file'], function() {
   express.run(['./build/back_end/bin/www'])
+  run('npm run dev').exec()
   gulp.watch('./src/back_end/**', ['reload'])
 })
 

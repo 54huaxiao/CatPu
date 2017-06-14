@@ -10,10 +10,19 @@ const query = require('../utils/utils').queryDB
 
 exports.retrieveData = (itemVal, item) => {
   let sql =
-	'SELECT * \n' +
-	'FROM userlist \n' +
-	'WHERE ' + item + ' = ? \n' +
+		'SELECT * \n' +
+		'FROM userlist \n' +
+		'WHERE ' + item + ' = ? \n' +
     ';'
   let vals = [itemVal]
   return query(sql, vals)
+}
+
+exports.register = (user) => {
+	let sql = 
+		'INSERT INTO userlist(username, tel, email, password) \n' +
+		'VALUES(?, ?, ?, ?) \n' +
+		';'
+		let vals = [user.username, user.phone, user.email, user.password]
+		return query(sql, vals)
 }

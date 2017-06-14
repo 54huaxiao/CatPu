@@ -14,15 +14,15 @@ const cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 const session = require('express-session')
 const MySqlStore = require('connect-mysql')(session)
+const pool = require('./utils/utils').pool
 
 //***********************下面为路由级中间件******************************
-const index = require('./routes/index')
 const users = require('./routes/users')
 
 //***********************下面为自定义模块********************************
 const config = require('./config/config')
-const pool = require('./utils/utils').pool
-const sc = config.session_config
+
+
 
 // view engine setup
 app.set('views', path.join(__dirname + '/../../src/front_end', 'views'))
@@ -33,15 +33,14 @@ app.use(logger('dev'))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
+const sc = config.session_config
 sc.store = new MySqlStore({ pool })
 app.use(session(sc))
 
 //前端资源路径
-app.use(express.static(__dirname + '/../../src/front_end'))
-app.use(favicon(path.join(__dirname + '/../../src/front_end/assets/images', 'favicon.ico')))
+app.use(express.static(__dirname + '/../front_end'))
 
 //路由配置
-app.use('/', index)
 app.use('/api/user', users)
 
 //错误抛出404异常
@@ -59,7 +58,7 @@ app.use(function(err, req, res, next) {
 
   //错误页面
   res.status(err.status || 500)
-  res.render('error')
+  res.send('error')
 })
 
 module.exports = app
