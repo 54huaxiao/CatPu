@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.shick.stepcounter.LoginActivity"
+    android:padding="8dp"
+    android:fitsSystemWindows="true">
+    <View
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerHorizontal="true"
+        android:background="@color/colorPrimary"/>
+
+    <ImageView
+        android:id="@+id/login_icon"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_centerHorizontal="true"
+        android:background="@android:color/holo_orange_light"
+        android:src="@mipmap/new_con" />
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/user_name_login"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_below="@id/login_icon"
+        app:hintTextAppearance="@style/HintTextStyle"
+        >
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="请输入用户名"
+            android:textSize="20sp"
+            android:drawablePadding="3dp"
+            android:maxLines="1"
+            android:maxLength="20"/>
+    </android.support.design.widget.TextInputLayout>
+    <LinearLayout
+        android:id="@+id/password_linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/user_name_login"
+        android:orientation="vertical">
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/password_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:passwordToggleEnabled="true"
+            app:hintTextAppearance="@style/HintTextStyle"
+            >
+            <android.support.design.widget.TextInputEditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="请输入密码"
+                android:inputType="textPassword"
+                android:drawablePadding="3dp"
+                android:textSize="20sp"
+                android:maxLength="20"
+                android:maxLines="1"
+                />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/description_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:hintTextAppearance="@style/HintTextStyle"
+            app:counterEnabled="true"
+            app:counterMaxLength="30"
+            app:counterTextAppearance="@style/HintCounterTextStyle"
+            android:visibility="gone"
+            >
+            <android.support.design.widget.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="个性签名"
+                android:drawablePadding="3dp"
+                android:textSize="20sp"
+                android:maxLength="30"
+                android:maxLines="1"
+
+                />
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/register_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/login_button"
+        android:layout_alignBottom="@+id/login_button"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/transparent"
+        android:backgroundTint="@color/transparent"
+        android:text="未拥有账号？点击此处注册"
+        android:textSize="15sp" />
+
+    <Button
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="登录"
+        android:layout_below="@id/password_linear"
+        android:layout_alignParentRight="true"/>
+
+</RelativeLayout>

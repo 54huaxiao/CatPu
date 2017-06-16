@@ -155,6 +155,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         db.close();
     }
 
+    //nothing
+    public void test() {
+
+    }
+
     private ServiceConnection sc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -475,6 +480,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         SDKInitializer.initialize(getApplicationContext());
         setContentView(R.layout.activity_main);
+
+        Intent intent = getIntent();
+        String username = intent.getStringExtra("User");
+        Toast.makeText(getApplicationContext(), username+"用户， 您好！", Toast.LENGTH_SHORT).show();
 
         initUtils();
         initViews();
