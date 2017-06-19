@@ -40,7 +40,6 @@
         <activity android:name=".LoginActivity" />
         <activity android:name=".DB_Activity" />
         <activity android:name=".MessageActivity" />
-
         <receiver android:name=".StepCounterWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

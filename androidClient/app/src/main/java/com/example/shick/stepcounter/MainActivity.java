@@ -110,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     List<LatLng> polylines = new ArrayList<LatLng>();
     private int order;
     private SharedPreferences preferences;
-
+    private String username = null;
+    private static final String TABLE_NAME = "RunTable";
     private SharedPreferences.Editor editor;
     // store cordinate changes
     private Overlay startOverlay = null;
@@ -146,7 +147,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mTextViewToday.setText(today);
         int times = 0;
         SQLiteDatabase db = database.getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from RunTable", null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "username = ?",
+                new String[]{username}, null, null, null, null);
         while(cursor.moveToNext()){
             times++;
         }
@@ -354,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(MainActivity.this, DB_Activity.class);
+                intent.putExtra("User", username);
                 startActivity(intent);
             }
         });
@@ -459,7 +462,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     editor.commit();
                     // delete the thread
                     if (!database.selectDB(date)) {
-                        database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepRecorder.getStepCount()), order-1+"");
+                        database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepRecorder.getStepCount()),username, order-1+"");
                         updateTop();
                     }
                     // press the stop button, save the data in the database and start a new Activity
@@ -482,7 +485,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         setContentView(R.layout.activity_main);
 
         Intent intent = getIntent();
-        String username = intent.getStringExtra("User");
+        username = intent.getStringExtra("User");
         Toast.makeText(getApplicationContext(), username+"用户， 您好！", Toast.LENGTH_SHORT).show();
 
         initUtils();

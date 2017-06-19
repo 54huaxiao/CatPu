@@ -16,9 +16,9 @@ public class Run_DB extends SQLiteOpenHelper{
     private static final String DB_NAME = "RunDB";
     private static final String TABLE_NAME = "RunTable";
     private static final int DB_VERSION = 1;
-
+    private String username = null;
     private static String CREATE_TABLE = "CREATE TABLE " + TABLE_NAME
-            +" (id INTEGER PRIMARY KEY,date TEXT,time TEXT,distance TEXT,_order INTEGER)";
+            +" (id INTEGER PRIMARY KEY,date TEXT,time TEXT,distance TEXT,username TEXT,_order INTEGER)";
     private Context mcontext;
     public Run_DB(Context context, String name, SQLiteDatabase.CursorFactory cursorFactory, int v) {
         super(context, name, cursorFactory, DB_VERSION);
@@ -33,12 +33,13 @@ public class Run_DB extends SQLiteOpenHelper{
 
     }
 
-    public void insertDB(String date, String time, String distance, String order) {
+    public void insertDB(String date, String time, String distance, String username,String order) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("date",date);
         cv.put("time", time);
         cv.put("distance", distance);
+        cv.put("username", username);
         cv.put("_order", order);
         db.insert(TABLE_NAME, null, cv);
         db.close();
@@ -57,7 +58,7 @@ public class Run_DB extends SQLiteOpenHelper{
 
     public boolean selectDB(String date) {
         SQLiteDatabase db = getReadableDatabase();
-        Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "_order"}, "date = ?",
+        Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "date = ?",
                 new String[]{date}, null, null, null, null);
         String judge = null;
         while(cursor.moveToNext()){
