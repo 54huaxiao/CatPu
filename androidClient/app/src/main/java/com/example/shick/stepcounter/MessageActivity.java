@@ -215,7 +215,6 @@ public class MessageActivity extends Activity {
         bundle.putString("time", time_);
         bundle.putString("calorie", String.format("%.2f", Math.ceil(distance_*0.06)));
         intent.putExtras(bundle);
-        sendBroadcast(intent);
     }
 
 
