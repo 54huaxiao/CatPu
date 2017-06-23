@@ -5,7 +5,12 @@
 /androidClient/.idea/libraries
 /androidClient/.DS_Store
 /androidClient/build
-/androidClient/captures=
+/androidClient/captures
+/androidClient/*.ap_
+/androidClient/*.apk
+/androidClient/bin/
+/androidClient/gen/
+/androidClient/out/
 
 /.DS_Store
 /server/node_modules
