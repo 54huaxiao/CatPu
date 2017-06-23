@@ -22,6 +22,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -57,6 +58,15 @@ import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
 import com.nbsp.materialfilepicker.MaterialFilePicker;
 import com.nbsp.materialfilepicker.ui.FilePickerActivity;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -145,16 +155,55 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         SimpleDateFormat DateFormat = new SimpleDateFormat("yyyy-MM-dd");
         String today = DateFormat.format(new java.util.Date());
         mTextViewToday.setText(today);
-        int times = 0;
+
+        /*int times = 0;
         SQLiteDatabase db = database.getReadableDatabase();
         Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "username = ?",
                 new String[]{username}, null, null, null, null);
         while(cursor.moveToNext()){
             times++;
+        }*/
+        class NetSender extends AsyncTask<String, Void, JSONArray> {
+            @Override
+            protected JSONArray doInBackground(String... params) {
+                String username = params[0];
+                try {
+                    URL url = new URL("http://10.0.2.2:3002/api/run/select");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
+                    httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                    httpURLConnection.setUseCaches(false);
+                    PrintWriter printWriter = new PrintWriter(httpURLConnection.getOutputStream());
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("username", username);
+                    printWriter.write(jsonObject.toString());
+                    printWriter.flush();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    String line = bufferedReader.readLine();
+                    return new JSONArray(line);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return new JSONArray();
+            }
+            @Override
+            protected void onPostExecute(JSONArray jsonArray) {
+                try {
+                    int times = jsonArray.length();
+                    TextView total_times = (TextView)findViewById(R.id.ts);
+                    total_times.setText(times+"");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                super.onPostExecute(jsonArray);
+            }
         }
-        TextView total_times = (TextView)findViewById(R.id.ts);
-        total_times.setText(times+"");
-        db.close();
+
+        NetSender netSender = new NetSender();
+        netSender.execute(username);
+        //db.close();
     }
 
     //nothing
@@ -461,10 +510,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     editor.putInt("order", order);
                     editor.commit();
                     // delete the thread
-                    if (!database.selectDB(date)) {
+
+                    //if (!database.selectDB(date)) {
                         database.insertDB(date,mTextViewTimer.getText().toString(), String.valueOf(stepRecorder.getStepCount()),username, order-1+"");
                         updateTop();
-                    }
+                    //}
+
                     // press the stop button, save the data in the database and start a new Activity
                     Intent intent = new Intent();
                     intent.setClass(MainActivity.this, MessageActivity.class);

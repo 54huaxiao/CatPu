@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +14,15 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;;
 
@@ -23,7 +33,7 @@ import java.util.List;;
 public class DB_Activity extends AppCompatActivity {
     private Run_DB database;
     private List<Run> runlist = new ArrayList<Run>();
-    private int times,hour,min,second,total_distance;
+    //private int times,hour,min,second,total_distance;
     private TextView total_times, totaldistances, totaltime;
     private String username = null;
     private static final String TABLE_NAME = "RunTable";
@@ -85,10 +95,11 @@ public class DB_Activity extends AppCompatActivity {
     }
     private void initRun(String username) {
         int flag = 0;
-        times = 0;
+
+        /*times = 0;
         total_distance = 0;
-        hour = min = second = 0;
-        SQLiteDatabase db = database.getReadableDatabase();
+        hour = min = second = 0;*/
+        /*SQLiteDatabase db = database.getReadableDatabase();
         Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "username = ?",
                 new String[]{username}, null, null, null, null);
         String date = null;
@@ -137,7 +148,80 @@ public class DB_Activity extends AppCompatActivity {
         String smin = min < 10 ? "0"+min:min+"";
         String ssecond = second < 10 ?"0"+second:second+"";
         totaltime.setText("总时长: "+shour+":"+smin+":"+ssecond);
-        db.close();
+        db.close();*/
+        class NetSender extends AsyncTask<String, Void, JSONArray> {
+            @Override
+            protected JSONArray doInBackground(String... params) {
+                String username = params[0];
+                try {
+                    URL url = new URL("http://10.0.2.2:3002/api/run/select");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
+                    httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                    httpURLConnection.setUseCaches(false);
+                    PrintWriter printWriter = new PrintWriter(httpURLConnection.getOutputStream());
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("username", username);
+                    printWriter.write(jsonObject.toString());
+                    printWriter.flush();
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    String line = bufferedReader.readLine();
+                    return  new JSONArray(line);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return new JSONArray();
+            }
+            @Override
+            protected void onPostExecute(JSONArray jsonArray) {
+                try {
+                    int times = jsonArray.length(), hour = 0,min = 0,second = 0,total_distance = 0;
+                    String date = null, time = null, distance = null;
+                    for (int i = 0; i < jsonArray.length(); ++i) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        date = jsonObject.getString("date");
+                        time = jsonObject.getString("time");
+                        distance = jsonObject.getString("distance");
+                        String a = jsonObject.getString("_order");
+                        int hi = Integer.parseInt(time.substring(0,2));
+                        int mi = Integer.parseInt(time.substring(3,5));
+                        int si = Integer.parseInt(time.substring(6,8));
+                        second += si;
+                        if (second >= 60) {
+                            second -= 60;
+                            min++;
+                        }
+                        min += mi;
+                        if (min >= 60) {
+                            min -= 60;
+                            hour++;
+                        }
+                        hour += hi;
+                        int dis = Integer.parseInt(distance);
+                        total_distance += dis;
+                        Run temp = new Run(date, time, distance, a+"");
+                        runlist.add(temp);
+                    }
+                    total_times = (TextView)findViewById(R.id.cishu);
+                    total_times.setText("总次数："+times+"");
+
+                    totaldistances = (TextView)findViewById(R.id.licheng);
+                    totaldistances.setText("总步数："+ total_distance);
+
+                    totaltime = (TextView)findViewById(R.id.shichang);
+
+                    String shour = hour < 10 ? "0"+hour:hour+"";
+                    String smin = min < 10 ? "0"+min:min+"";
+                    String ssecond = second < 10 ?"0"+second:second+"";
+                    totaltime.setText("总时长: "+shour+":"+smin+":"+ssecond);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                super.onPostExecute(jsonArray);
+            }
+        }
     }
 
 }
