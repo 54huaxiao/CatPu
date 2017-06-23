@@ -198,7 +198,7 @@ public class BeginActivity extends AppCompatActivity implements ViewPager.OnPage
     @Override
     public void onItemClick(int position) {
 //        jump to MainActivity
-        Intent intent = new Intent(BeginActivity.this, MainActivity.class);
+        Intent intent = new Intent(BeginActivity.this, LoginActivity.class);
         startActivity(intent);
     }
 }

@@ -8,6 +8,7 @@ import com.bigkoo.convenientbanner.holder.Holder;
 
 /**
  * Created by Vincent on 2016/12/19.
+ * 本地图片转换句柄
  */
 
 

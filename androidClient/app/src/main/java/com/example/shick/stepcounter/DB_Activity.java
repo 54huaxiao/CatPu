@@ -25,14 +25,17 @@ public class DB_Activity extends AppCompatActivity {
     private List<Run> runlist = new ArrayList<Run>();
     private int times,hour,min,second,total_distance;
     private TextView total_times, totaldistances, totaltime;
+    private String username = null;
+    private static final String TABLE_NAME = "RunTable";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.db_layout);
 
-
+        Intent intent = getIntent();
+        username = intent.getStringExtra("User");
         database = new Run_DB(this, "RunDB", null, 1);
-        initRun();
+        initRun(username);
         final Run_Adapter adapter = new Run_Adapter(DB_Activity.this, R.layout.run_item, runlist);
         final ListView listView = (ListView) findViewById(R.id.runlist);
         listView.setAdapter(adapter);
@@ -57,7 +60,7 @@ public class DB_Activity extends AppCompatActivity {
                                 Toast.makeText(DB_Activity.this, "删除成功！", Toast.LENGTH_SHORT).show();
 
                                 adapter.clear();
-                                initRun();
+                                initRun(username);
                                 listView.setAdapter(adapter);
                             }
                         }).
@@ -80,13 +83,14 @@ public class DB_Activity extends AppCompatActivity {
         });
 
     }
-    private void initRun() {
+    private void initRun(String username) {
         int flag = 0;
         times = 0;
         total_distance = 0;
         hour = min = second = 0;
         SQLiteDatabase db = database.getReadableDatabase();
-        Cursor cursor = db.rawQuery("select * from RunTable", null);
+        Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "username = ?",
+                new String[]{username}, null, null, null, null);
         String date = null;
         String time = null;
         String distance = null;
