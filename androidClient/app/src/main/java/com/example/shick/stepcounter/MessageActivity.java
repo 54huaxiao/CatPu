@@ -16,6 +16,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
@@ -44,6 +45,14 @@ import com.baidu.mapapi.map.TextureMapView;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.CoordinateConverter;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.Provider;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +62,7 @@ import java.util.List;
  */
 
 public class MessageActivity extends Activity {
-
+    private Context context = this;
     public static final String STATICACTION = "com.example.shick.stepcounter.MyBroadcast";
     private Map_DB map_database;
     private TextureMapView mMapView2;
@@ -118,8 +127,8 @@ public class MessageActivity extends Activity {
         }
 
         int a = getIntent().getIntExtra("orderr", 0);
-        List<LatLng> guiji = map_database.selectdb(a);
 
+        /*List<LatLng> guiji = map_database.selectdb(a);
         if (guiji.size() >= 2) {
             startLocation = guiji.get(0);
             endLocation = guiji.get(guiji.size() - 1);
@@ -155,6 +164,83 @@ public class MessageActivity extends Activity {
         } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             startLocation = convertLocationToLatLng(mLocationManager.getLastKnownLocation(providerName));
             endLocation = startLocation;
+        }*/
+        class NetSender extends AsyncTask<String, Void, JSONArray> {
+            @Override
+            protected JSONArray doInBackground(String... params) {
+                int order = Integer.parseInt(params[0]);
+                try {
+                    URL url = new URL("http://10.0.2.2:3002/api/map/select");
+                    HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+                    httpURLConnection.setRequestMethod("POST");
+                    httpURLConnection.setDoOutput(true);
+                    httpURLConnection.setDoInput(true);
+                    httpURLConnection.setRequestProperty("Content-Type", "application/json");
+                    httpURLConnection.setUseCaches(false);
+
+                    PrintWriter printWriter = new PrintWriter(httpURLConnection.getOutputStream());
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("_order", order);
+                    printWriter.write(jsonObject.toString());
+                    printWriter.flush();
+
+                    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpURLConnection.getInputStream()));
+                    String line = bufferedReader.readLine();
+                    return new JSONArray(line);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return new JSONArray();
+            }
+            @Override
+            protected void onPostExecute(JSONArray jsonArray) {
+                List<LatLng> guiji = null;
+                try {
+                    for (int i = 0; i < jsonArray.length(); ++i) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        LatLng latLng = new LatLng(jsonObject.getDouble("latitude"), jsonObject.getDouble("longitude"));
+                        guiji.add(latLng);
+                    }
+                    if (guiji.size() >= 2) {
+                        startLocation = guiji.get(0);
+                        endLocation = guiji.get(guiji.size() - 1);
+                        // draw lines
+                        int i = 0;
+                        List<LatLng> temp1 = new ArrayList<LatLng>();
+                        LatLng pause = new LatLng(0,0);
+                        while (i < guiji.size()) {
+                            if (guiji.get(i).toString().equals(pause.toString())&&temp1.size() >= 2) {
+                                OverlayOptions ooPolyline = new PolylineOptions().width(5)
+                                        .color(Color.RED).points(temp1);
+                                mMapView2.getMap().addOverlay(ooPolyline);
+                                temp1.clear();
+                                i++;
+                                continue;
+                            }
+                            if (guiji.get(i).toString().equals(pause.toString())) {
+                                temp1.clear();
+                                i++;
+                                continue;
+                            }
+                            if (i == guiji.size()-1 && temp1.size() >= 2) {
+                                OverlayOptions ooPolyline = new PolylineOptions().width(5)
+                                        .color(Color.RED).points(temp1);
+                                mMapView2.getMap().addOverlay(ooPolyline);
+                                temp1.clear();
+                                i++;
+                                continue;
+                            }
+                            temp1.add(guiji.get(i));
+                            i++;
+                        }
+                    } else if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                        startLocation = convertLocationToLatLng(mLocationManager.getLastKnownLocation(providerName));
+                        endLocation = startLocation;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
 
         // mark start icon

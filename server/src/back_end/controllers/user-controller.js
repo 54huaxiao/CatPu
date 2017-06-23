@@ -9,13 +9,14 @@ const express = require('express')
 const user_model = require('../models/user-model')
 
 exports.register = (req, res, next) => {
+  console.log("register");
   user_model.retrieveData(req.body.username, 'username')
     .then(([user]) => {
       if (user != null) {
         res.json({
           status: 'USER_EXIST',
           msg: '用户：' + req.body.username + '已存在',
-          content: [user.username]
+          content: user.username
         })
       } else if (req.body.username == '' || req.body.phone == ''
         || req.body.email == '' || req.body.password == '') {
@@ -26,15 +27,15 @@ exports.register = (req, res, next) => {
         res.json({
           status: 'INVALID_VALUE',
           msg: '参数不能为空',
-          content: ['']
+          content: ''
         })
       } else {
         user_model.register(req.body)
           .then(users => {
             res.json({
-              status: 'OK',
+              status: 'register success',
               msg: '用户：' + req.body.username + '注册成功',
-              content: [req.body.username]
+              content: req.body.username
             })
           })
           .catch(err => { console.log(err) })
@@ -49,26 +50,27 @@ exports.login = (req, res, next) => {
   //   res.send("you don't logout!");
   //   return;
   // }
+  console.log("login");
   user_model.retrieveData(req.body.username, 'username')
     .then(([user]) => {
       if (user == null) {
         res.json({
           status: 'USER_NOT_EXIST',
           msg: '用户：' + req.body.username + '不存在',
-          content: [user]
+          content: user
         })
       } else if (user.password != req.body.password) {
         res.json({
           status: 'PASSWORD_WRONG',
           msg: '密码错误',
-          content: [user.username]
+          content: user.username
         })
       } else {
         req.session.username = req.body.username
         res.json({
-          status: 'OK',
+          status: 'login success',
           msg: '用户：' + req.body.username + '登陆成功',
-          content: [user.username]
+          content: user.username
         })
       }
     })

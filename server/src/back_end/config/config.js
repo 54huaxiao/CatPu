@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @Author: zx
  * @Date:   2017-05-13
  * @Email:  yangzx8@mail2.sysu.edu.cn
@@ -14,7 +14,7 @@ module.exports = {
   db: {
     host: '127.0.0.1', 
 	  user: 'root',
-	  password: 'asdf1234',
+	  password: '123456',
 	  database:'catpudata' // 前面建的user表位于这个数据库中
   },
   session_config: {
