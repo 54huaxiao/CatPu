@@ -1,9 +1,9 @@
 <template>
 	<div id='login-register-page'>
 		<mu-tabs id='login-register-toggle' :value="activeTab" @change="handleTabChange">
-    	<mu-tab value="login" title="登录"/>
-    	<mu-tab value="register" title="注册"/>
-    </mu-tabs>
+	    	<mu-tab value="login" title="登录"/>
+	    	<mu-tab value="register" title="注册"/>
+	    </mu-tabs>
 		<div id='login-container' v-if='activeTab=="login"'>
 			<mu-paper id='login-paper'>
 				<div id='login-name'>
@@ -84,7 +84,7 @@ export default {
     	this.$http.post(`${this.url}/user/login`, info)
     		.then(res => {
     			if (res.data.status == 'OK') {
-    				alert(res.data.msg)
+    				this.$router.replace('/main_page')
     			} else if (res.data.status == 'USER_NOT_EXIST') {
     				this.l_n_error = res.data.msg
     			} else if (res.data.status == 'PASSWORD_WRONG') {

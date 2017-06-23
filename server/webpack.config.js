@@ -44,7 +44,7 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
+        test: /\.(ico|png|jpg|gif|svg)$/,
         loader: 'file-loader',
         options: {
           name: '[name].[ext]?[hash]'
@@ -55,7 +55,7 @@ module.exports = {
   plugins: [
     new HtmlwebpackPlugin({
       title: 'CATPU Your Friend',
-      favicon: './src/front_end/assets/images/favicon.ico',
+      favicon: './src/front_end/assets/images/new_con.png',
       template: './src/front_end/index.html',
       inject: 'body',
       minify: {

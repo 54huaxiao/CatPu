@@ -18,6 +18,8 @@ const pool = require('./utils/utils').pool
 
 //***********************下面为路由级中间件******************************
 const users = require('./routes/users')
+const map = require('./routes/map')
+const run = require('./routes/run')
 
 //***********************下面为自定义模块********************************
 const config = require('./config/config')
@@ -42,6 +44,8 @@ app.use(express.static(__dirname + '/../front_end'))
 
 //路由配置
 app.use('/api/user', users)
+app.use('/api/map', map)
+app.use('/api/run', run)
 
 //错误抛出404异常
 app.use(function(req, res, next) {

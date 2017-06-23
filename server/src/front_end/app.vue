@@ -18,6 +18,7 @@ export default {
   },
   mounted() {
   	this.$router.replace('/login_and_register_page')
+    //this.$router.replace('/main_page') 
   }
 }
 </script>
