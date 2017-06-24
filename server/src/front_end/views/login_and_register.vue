@@ -83,8 +83,8 @@ export default {
     	}
     	this.$http.post(`${this.url}/user/login`, info)
     		.then(res => {
-    			if (res.data.status == 'OK') {
-    				alert(res.data.msg)
+    			if (res.data.status == 'login success') {
+    				this.$router.replace('/main_page')
     			} else if (res.data.status == 'USER_NOT_EXIST') {
     				this.l_n_error = res.data.msg
     			} else if (res.data.status == 'PASSWORD_WRONG') {
@@ -106,7 +106,7 @@ export default {
     				this.r_n_error = res.data.msg
     			} else if (res.data.status == 'INVALID_VALUE') {
     				alert(res.data.msg)
-    			} else if (res.data.status == 'OK') {
+    			} else if (res.data.status == 'register success') {
     				alert(res.data.msg)
     				this.activeTab = 'login'
     			}
