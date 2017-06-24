@@ -158,6 +158,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         /*int times = 0;
         SQLiteDatabase db = database.getReadableDatabase();
+
         Cursor cursor = db.query(TABLE_NAME, new String[]{"date","time", "distance", "username","_order"}, "username = ?",
                 new String[]{username}, null, null, null, null);
         while(cursor.moveToNext()){
