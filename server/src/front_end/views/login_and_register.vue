@@ -1,9 +1,9 @@
 <template>
 	<div id='login-register-page'>
 		<mu-tabs id='login-register-toggle' :value="activeTab" @change="handleTabChange">
-    	<mu-tab value="login" title="登录"/>
-    	<mu-tab value="register" title="注册"/>
-    </mu-tabs>
+	    	<mu-tab value="login" title="登录"/>
+	    	<mu-tab value="register" title="注册"/>
+	    </mu-tabs>
 		<div id='login-container' v-if='activeTab=="login"'>
 			<mu-paper id='login-paper'>
 				<div id='login-name'>
