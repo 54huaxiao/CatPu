@@ -256,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             if (mToggleButton.isChecked()) {
                 centerCurrentLocationOnScreen();
             }
-            handlerUpdateDB.postDelayed(this, 250);
+            handlerUpdateDB.postDelayed(this, 2500);
         }
     };
 
